@@ -16,6 +16,8 @@ st.title("💰 Personal Finance Manager")
 # Initialize session state for modal
 if 'show_transaction_modal' not in st.session_state:
     st.session_state.show_transaction_modal = False
+if 'selected_category' not in st.session_state:
+    st.session_state.selected_category = None
 
 # Button to open modal
 if st.button("➕ Add Transaction", type="primary"):
@@ -31,45 +33,84 @@ if st.session_state.show_transaction_modal:
 
         # Category selection with larger icons in a grid
         st.write("#### Select Category")
-        categories = list(CATEGORY_ICONS.keys())
-        cols = st.columns(3)  # Create 3 columns for the grid
 
         # Style for category icons
-        icon_style = '''
+        st.markdown("""
         <style>
-            .category-icon { font-size: 2em; margin-bottom: 5px; }
-            .category-label { font-size: 1em; }
+            div[data-testid="stHorizontalBlock"] button[kind="secondary"] {
+                background: none;
+                border: 2px solid #f0f2f6;
+                border-radius: 10px;
+                padding: 20px 10px;
+                min-height: 120px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s;
+            }
+            div[data-testid="stHorizontalBlock"] button[kind="secondary"]:hover {
+                border-color: #0066cc;
+                transform: translateY(-2px);
+            }
+            .category-icon {
+                font-size: 2.5em;
+                margin-bottom: 10px;
+                color: #262730;
+            }
+            .category-label {
+                font-size: 0.9em;
+                margin-top: 5px;
+                color: #262730;
+            }
+            .selected-category {
+                border-color: #0066cc !important;
+                background-color: #f8f9fa !important;
+            }
         </style>
-        '''
-        st.markdown(icon_style, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
-        # Display categories in a grid
-        selected_category = st.radio(
-            "Category",
-            categories,
-            format_func=lambda x: f'''
-            <div style="text-align: center">
-                <div class="category-icon">{CATEGORY_ICONS[x]}</div>
-                <div class="category-label">{x}</div>
+        # Create grid of category buttons
+        categories = list(CATEGORY_ICONS.keys())
+        cols = st.columns(3)
+
+        for idx, category in enumerate(categories):
+            with cols[idx % 3]:
+                btn_html = f"""
+                <div class="category-icon">{CATEGORY_ICONS[category]}</div>
+                <div class="category-label">{category}</div>
+                """
+                if st.form_submit_button(btn_html, key=f"cat_{category}", 
+                                       use_container_width=True, 
+                                       help=f"Select {category}",
+                                       type="secondary"):
+                    st.session_state.selected_category = category
+
+        # Display selected category
+        if st.session_state.selected_category:
+            st.markdown(f"""
+            <div style='text-align: center; margin: 10px 0;'>
+                Selected: <b>{st.session_state.selected_category}</b>
             </div>
-            ''',
-            horizontal=True,
-            label_visibility="collapsed"
-        )
+            """, unsafe_allow_html=True)
 
         transaction_type = st.selectbox("Type", ["income", "expense"])
 
         col1, col2 = st.columns(2)
         with col1:
             if st.form_submit_button("Add", type="primary", use_container_width=True):
-                if amount > 0:
-                    data_manager.add_transaction(date, amount, selected_category, transaction_type)
+                if amount > 0 and st.session_state.selected_category:
+                    data_manager.add_transaction(
+                        date, amount, st.session_state.selected_category, transaction_type
+                    )
                     st.success("Transaction added successfully!")
                     st.session_state.show_transaction_modal = False
+                    st.session_state.selected_category = None
                     st.experimental_rerun()
         with col2:
             if st.form_submit_button("Cancel", use_container_width=True):
                 st.session_state.show_transaction_modal = False
+                st.session_state.selected_category = None
                 st.experimental_rerun()
 
 # Main content
