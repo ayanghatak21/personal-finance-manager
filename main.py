@@ -67,16 +67,21 @@ if st.session_state.show_transaction_modal:
     for idx, category in enumerate(categories):
         with cols[idx % 3]:
             if st.button(
-                f'''
-                <div class="category-icon">{CATEGORY_ICONS[category]}</div>
-                <div class="category-label">{category}</div>
-                ''',
+                category,
                 key=f"cat_{category}",
                 help=f"Select {category}",
                 type="secondary",
                 use_container_width=True
             ):
                 st.session_state.selected_category = category
+
+            # Display icon and label separately using markdown
+            st.markdown(f"""
+                <div style="text-align: center; margin-top: -60px; pointer-events: none;">
+                    {CATEGORY_ICONS[category]}
+                    <div style="margin-top: 5px;">{category}</div>
+                </div>
+            """, unsafe_allow_html=True)
 
     if st.session_state.selected_category:
         st.markdown(f"""
