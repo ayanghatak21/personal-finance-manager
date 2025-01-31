@@ -25,75 +25,70 @@ if st.button("➕ Add Transaction", type="primary"):
 
 # Transaction Modal
 if st.session_state.show_transaction_modal:
-    with st.form("transaction_form", clear_on_submit=True):
-        st.subheader("Add New Transaction")
+    st.subheader("Add New Transaction")
 
-        date = st.date_input("Date", datetime.now())
-        amount = st.number_input("Amount ($)", min_value=0.0, format="%f")
+    # Style for category icons
+    st.markdown("""
+    <style>
+        button[kind="secondary"] {
+            background: none;
+            border: 2px solid #f0f2f6;
+            border-radius: 10px;
+            padding: 20px 10px;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        button[kind="secondary"]:hover {
+            border-color: #0066cc;
+            transform: translateY(-2px);
+        }
+        .category-icon {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: #262730;
+        }
+        .category-label {
+            font-size: 0.9em;
+            margin-top: 5px;
+            color: #262730;
+        }
+    </style>
+    """, unsafe_allow_html=True)
 
-        # Category selection with larger icons in a grid
-        st.write("#### Select Category")
+    # Category selection grid
+    st.write("#### Select Category")
+    categories = list(CATEGORY_ICONS.keys())
+    cols = st.columns(3)
 
-        # Style for category icons
-        st.markdown("""
-        <style>
-            div[data-testid="stHorizontalBlock"] button[kind="secondary"] {
-                background: none;
-                border: 2px solid #f0f2f6;
-                border-radius: 10px;
-                padding: 20px 10px;
-                min-height: 120px;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                transition: all 0.3s;
-            }
-            div[data-testid="stHorizontalBlock"] button[kind="secondary"]:hover {
-                border-color: #0066cc;
-                transform: translateY(-2px);
-            }
-            .category-icon {
-                font-size: 2.5em;
-                margin-bottom: 10px;
-                color: #262730;
-            }
-            .category-label {
-                font-size: 0.9em;
-                margin-top: 5px;
-                color: #262730;
-            }
-            .selected-category {
-                border-color: #0066cc !important;
-                background-color: #f8f9fa !important;
-            }
-        </style>
-        """, unsafe_allow_html=True)
-
-        # Create grid of category buttons
-        categories = list(CATEGORY_ICONS.keys())
-        cols = st.columns(3)
-
-        for idx, category in enumerate(categories):
-            with cols[idx % 3]:
-                btn_html = f"""
+    for idx, category in enumerate(categories):
+        with cols[idx % 3]:
+            if st.button(
+                f'''
                 <div class="category-icon">{CATEGORY_ICONS[category]}</div>
                 <div class="category-label">{category}</div>
-                """
-                if st.form_submit_button(btn_html, key=f"cat_{category}", 
-                                       use_container_width=True, 
-                                       help=f"Select {category}",
-                                       type="secondary"):
-                    st.session_state.selected_category = category
+                ''',
+                key=f"cat_{category}",
+                help=f"Select {category}",
+                type="secondary",
+                use_container_width=True
+            ):
+                st.session_state.selected_category = category
 
-        # Display selected category
-        if st.session_state.selected_category:
-            st.markdown(f"""
-            <div style='text-align: center; margin: 10px 0;'>
-                Selected: <b>{st.session_state.selected_category}</b>
-            </div>
-            """, unsafe_allow_html=True)
+    if st.session_state.selected_category:
+        st.markdown(f"""
+        <div style='text-align: center; margin: 10px 0;'>
+            Selected: <b>{st.session_state.selected_category}</b>
+        </div>
+        """, unsafe_allow_html=True)
 
+    # Transaction form
+    with st.form("transaction_form", clear_on_submit=True):
+        date = st.date_input("Date", datetime.now())
+        amount = st.number_input("Amount ($)", min_value=0.0, format="%f")
         transaction_type = st.selectbox("Type", ["income", "expense"])
 
         col1, col2 = st.columns(2)
