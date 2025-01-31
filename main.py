@@ -13,28 +13,64 @@ data_manager = DataManager()
 # Main title
 st.title("💰 Personal Finance Manager")
 
-# Sidebar
-st.sidebar.header("Add Transaction")
+# Initialize session state for modal
+if 'show_transaction_modal' not in st.session_state:
+    st.session_state.show_transaction_modal = False
 
-# Transaction Form
-with st.sidebar.form("transaction_form"):
-    date = st.date_input("Date", datetime.now())
-    amount = st.number_input("Amount ($)", min_value=0.0, format="%f")
+# Button to open modal
+if st.button("➕ Add Transaction", type="primary"):
+    st.session_state.show_transaction_modal = True
 
-    # Category selection with icons using radio buttons
-    categories = list(CATEGORY_ICONS.keys())
-    selected_category = st.radio(
-        "Category",
-        categories,
-        format_func=lambda x: f"{x} {CATEGORY_ICONS[x]}"
-    )
+# Transaction Modal
+if st.session_state.show_transaction_modal:
+    with st.form("transaction_form", clear_on_submit=True):
+        st.subheader("Add New Transaction")
 
-    transaction_type = st.selectbox("Type", ["income", "expense"])
+        date = st.date_input("Date", datetime.now())
+        amount = st.number_input("Amount ($)", min_value=0.0, format="%f")
 
-    submit_button = st.form_submit_button("Add Transaction")
-    if submit_button and amount > 0:
-        data_manager.add_transaction(date, amount, selected_category, transaction_type)
-        st.success("Transaction added successfully!")
+        # Category selection with larger icons in a grid
+        st.write("#### Select Category")
+        categories = list(CATEGORY_ICONS.keys())
+        cols = st.columns(3)  # Create 3 columns for the grid
+
+        # Style for category icons
+        icon_style = '''
+        <style>
+            .category-icon { font-size: 2em; margin-bottom: 5px; }
+            .category-label { font-size: 1em; }
+        </style>
+        '''
+        st.markdown(icon_style, unsafe_allow_html=True)
+
+        # Display categories in a grid
+        selected_category = st.radio(
+            "Category",
+            categories,
+            format_func=lambda x: f'''
+            <div style="text-align: center">
+                <div class="category-icon">{CATEGORY_ICONS[x]}</div>
+                <div class="category-label">{x}</div>
+            </div>
+            ''',
+            horizontal=True,
+            label_visibility="collapsed"
+        )
+
+        transaction_type = st.selectbox("Type", ["income", "expense"])
+
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.form_submit_button("Add", type="primary", use_container_width=True):
+                if amount > 0:
+                    data_manager.add_transaction(date, amount, selected_category, transaction_type)
+                    st.success("Transaction added successfully!")
+                    st.session_state.show_transaction_modal = False
+                    st.experimental_rerun()
+        with col2:
+            if st.form_submit_button("Cancel", use_container_width=True):
+                st.session_state.show_transaction_modal = False
+                st.experimental_rerun()
 
 # Main content
 col1, col2 = st.columns(2)
@@ -48,7 +84,7 @@ with col1:
             use_container_width=True
         )
     else:
-        st.info("No transactions yet. Add some using the form!")
+        st.info("No transactions yet. Add some using the '➕ Add Transaction' button!")
 
 with col2:
     st.subheader("Analytics")
