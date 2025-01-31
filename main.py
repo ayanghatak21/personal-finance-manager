@@ -46,11 +46,11 @@ if st.session_state.show_custom_category_modal:
                     )
                     st.success(f"Category '{category_name}' created!")
                     st.session_state.show_custom_category_modal = False
-                    st.experimental_rerun()
+                    st.rerun()
         with col2:
             if st.form_submit_button("Cancel", use_container_width=True):
                 st.session_state.show_custom_category_modal = False
-                st.experimental_rerun()
+                st.rerun()
 
 # Transaction Modal
 if st.session_state.show_transaction_modal:
@@ -108,7 +108,7 @@ if st.session_state.show_transaction_modal:
             use_container_width=True
         ):
             st.session_state.show_custom_category_modal = True
-            st.experimental_rerun()
+            st.rerun()
 
     # Display all categories
     for idx, category in enumerate(categories, start=1):
@@ -153,14 +153,14 @@ if st.session_state.show_transaction_modal:
                     st.success("Transaction added successfully!")
                     st.session_state.show_transaction_modal = False
                     st.session_state.selected_category = None
-                    st.experimental_rerun()
+                    st.rerun()
         with col2:
             if st.form_submit_button("Cancel", use_container_width=True):
                 st.session_state.show_transaction_modal = False
                 st.session_state.selected_category = None
-                st.experimental_rerun()
+                st.rerun()
 
-# Rest of the main content remains unchanged
+# Rest of the main content 
 col1, col2 = st.columns(2)
 
 with col1:
