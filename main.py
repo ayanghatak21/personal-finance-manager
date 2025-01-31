@@ -3,25 +3,54 @@ import pandas as pd
 from datetime import datetime
 from utils.data_manager import DataManager
 from utils.charts import create_category_summary_chart, create_income_vs_expenses_chart
+from utils.custom_categories import CustomCategoryManager
 from assets.category_icons import CATEGORY_ICONS, CATEGORY_COLORS
 
 st.set_page_config(page_title="Personal Finance Manager", layout="wide")
 
-# Initialize data manager
+# Initialize managers
 data_manager = DataManager()
+custom_category_manager = CustomCategoryManager()
 
 # Main title
 st.title("💰 Personal Finance Manager")
 
-# Initialize session state for modal
+# Initialize session states
 if 'show_transaction_modal' not in st.session_state:
     st.session_state.show_transaction_modal = False
+if 'show_custom_category_modal' not in st.session_state:
+    st.session_state.show_custom_category_modal = False
 if 'selected_category' not in st.session_state:
     st.session_state.selected_category = None
 
 # Button to open modal
 if st.button("➕ Add Transaction", type="primary"):
     st.session_state.show_transaction_modal = True
+
+# Custom Category Modal
+if st.session_state.show_custom_category_modal:
+    st.subheader("Create Custom Category")
+    with st.form("custom_category_form", clear_on_submit=True):
+        category_name = st.text_input("Category Name")
+        # Simplified color picker
+        color = st.color_picker("Category Color", "#FF0000")
+        # Use a default icon for custom categories
+        default_icon = '''<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>'''
+
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.form_submit_button("Create", type="primary", use_container_width=True):
+                if category_name:
+                    custom_category_manager.add_custom_category(
+                        category_name, default_icon, color
+                    )
+                    st.success(f"Category '{category_name}' created!")
+                    st.session_state.show_custom_category_modal = False
+                    st.experimental_rerun()
+        with col2:
+            if st.form_submit_button("Cancel", use_container_width=True):
+                st.session_state.show_custom_category_modal = False
+                st.experimental_rerun()
 
 # Transaction Modal
 if st.session_state.show_transaction_modal:
@@ -61,10 +90,28 @@ if st.session_state.show_transaction_modal:
 
     # Category selection grid
     st.write("#### Select Category")
-    categories = list(CATEGORY_ICONS.keys())
+
+    # Combine built-in and custom categories
+    custom_categories = custom_category_manager.get_custom_categories()
+    all_categories = {**CATEGORY_ICONS, **{name: data['icon'] for name, data in custom_categories.items()}}
+
+    categories = list(all_categories.keys())
     cols = st.columns(3)
 
-    for idx, category in enumerate(categories):
+    # Add custom category button first
+    with cols[0]:
+        if st.button(
+            "➕ Create Category",
+            key="create_category",
+            help="Create a new custom category",
+            type="secondary",
+            use_container_width=True
+        ):
+            st.session_state.show_custom_category_modal = True
+            st.experimental_rerun()
+
+    # Display all categories
+    for idx, category in enumerate(categories, start=1):
         with cols[idx % 3]:
             if st.button(
                 category,
@@ -75,10 +122,11 @@ if st.session_state.show_transaction_modal:
             ):
                 st.session_state.selected_category = category
 
-            # Display icon and label separately using markdown
+            # Display icon
+            icon = all_categories[category]
             st.markdown(f"""
                 <div style="text-align: center; margin-top: -60px; pointer-events: none;">
-                    {CATEGORY_ICONS[category]}
+                    {icon}
                 </div>
             """, unsafe_allow_html=True)
 
@@ -112,7 +160,7 @@ if st.session_state.show_transaction_modal:
                 st.session_state.selected_category = None
                 st.experimental_rerun()
 
-# Main content
+# Rest of the main content remains unchanged
 col1, col2 = st.columns(2)
 
 with col1:
