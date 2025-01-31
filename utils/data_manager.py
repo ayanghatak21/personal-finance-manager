@@ -6,7 +6,7 @@ class DataManager:
     def __init__(self):
         self.file_path = 'data/transactions.csv'
         self._ensure_file_exists()
-        
+
     def _ensure_file_exists(self):
         if not os.path.exists('data'):
             os.makedirs('data')
@@ -32,15 +32,16 @@ class DataManager:
 
     def get_summary(self, period='month'):
         df = self.get_transactions()
-        
+
         if period == 'week':
             df['period'] = df['date'].dt.isocalendar().week
         elif period == 'month':
             df['period'] = df['date'].dt.month
         else:  # year
             df['period'] = df['date'].dt.year
-            
-        expenses = df[df['type'] == 'expense'].groupby(['period', 'category'])['amount'].sum()
-        income = df[df['type'] == 'income'].groupby(['period', 'category'])['amount'].sum()
-        
+
+        # Return full DataFrames instead of series
+        expenses = df[df['type'] == 'expense'].groupby(['period', 'category'])['amount'].sum().reset_index()
+        income = df[df['type'] == 'income'].groupby(['period', 'category'])['amount'].sum().reset_index()
+
         return expenses, income

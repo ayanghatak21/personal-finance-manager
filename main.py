@@ -184,6 +184,7 @@ with col2:
         expenses_chart = create_category_summary_chart(expenses, period)
         st.plotly_chart(expenses_chart, use_container_width=True)
 
+        # Calculate totals by period
         total_expenses = expenses.groupby('period')['amount'].sum()
         total_income = income.groupby('period')['amount'].sum()
 
