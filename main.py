@@ -79,7 +79,6 @@ if st.session_state.show_transaction_modal:
             st.markdown(f"""
                 <div style="text-align: center; margin-top: -60px; pointer-events: none;">
                     {CATEGORY_ICONS[category]}
-                    <div style="margin-top: 5px;">{category}</div>
                 </div>
             """, unsafe_allow_html=True)
 
